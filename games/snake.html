@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Press Start 2P', cursive;
+  }
+  #game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+  }
+  #snake-game {
+    width: 400px;
+    height: 400px;
+    background-color: #111;
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+  }
+  .snake {
+    background-color: #32CD32;
+  }
+  .pellet {
+    background-color: #FFA07A;
+  }
+</style>
+</head>
+<body class="bg-gray-800 text-white">
+<div id="game-container">
+  <h1 class="text-4xl mb-2">Snake</h1>
+  <p class="mb-4 text-center">Use WASD or arrow keys to control the snake. Eat pellets to grow and increase your score. Don't run into yourself!</p>
+  <div id="snake-game"></div>
+  <p class="mt-4">Score: <span id="score">0</span></p>
+</div>
+
+<script>
+  const gameSize = 20;
+  let snake = [{ x: 10, y: 10 }];
+  let pellet = { x: Math.floor(Math.random() * gameSize), y: Math.floor(Math.random() * gameSize) };
+  let direction = { x: 0, y: 0 };
+  let newDirection = { x: 0, y: 0 };
+  let score = 0;
+
+  const gameBoard = document.getElementById('snake-game');
+  const scoreDisplay = document.getElementById('score');
+
+  function drawGame() {
+    gameBoard.innerHTML = '';
+    // Draw snake
+    snake.forEach(segment => {
+      const snakeElement = document.createElement('div');
+      snakeElement.style.gridColumnStart = segment.x;
+      snakeElement.style.gridRowStart = segment.y;
+      snakeElement.classList.add('snake');
+      gameBoard.appendChild(snakeElement);
+    });
+    // Draw pellet
+    const pelletElement = document.createElement('div');
+    pelletElement.style.gridColumnStart = pellet.x;
+    pelletElement.style.gridRowStart = pellet.y;
+    pelletElement.classList.add('pellet');
+    gameBoard.appendChild(pelletElement);
+  }
+
+  function moveSnake() {
+    const head = { x: snake[0].x + newDirection.x, y: snake[0].y + newDirection.y };
+    snake.unshift(head);
+    if (head.x === pellet.x && head.y === pellet.y) {
+      score += 1;
+      scoreDisplay.textContent = score;
+      pellet = { x: Math.floor(Math.random() * gameSize), y: Math.floor(Math.random() * gameSize) };
+    } else {
+      snake.pop();
+    }
+  }
+
+  function checkCollision() {
+    for (let i = 4; i < snake.length; i++) {
+      if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+        return true;
+      }
+    }
+    return snake[0].x < 1 || snake[0].x > gameSize || snake[0].y < 1 || snake[0].y > gameSize;
+  }
+
+  function gameLoop() {
+    moveSnake();
+    if (checkCollision()) {
+      snake = [{ x: 10, y: 10 }];
+      direction = { x: 0, y: 0 };
+      newDirection = { x: 0, y: 0 };
+      score = 0;
+      scoreDisplay.textContent = score;
+    }
+    drawGame();
+  }
+
+  function changeDirection(event) {
+    const keyPressed = event.key;
+    const goingUp = direction.y === -1;
+    const goingDown = direction.y === 1;
+    const goingRight = direction.x === 1;
+    const goingLeft = direction.x === -1;
+
+    switch (keyPressed) {
+      case 'ArrowLeft':
+      case 'a':
+        if (!goingRight) { newDirection = { x: -1, y: 0 }; }
+        break;
+      case 'ArrowUp':
+      case 'w':
+        if (!goingDown) { newDirection = { x: 0, y: -1 }; }
+        break;
+      case 'ArrowRight':
+      case 'd':
+        if (!goingLeft) { newDirection = { x: 1, y: 0 }; }
+        break;
+      case 'ArrowDown':
+      case 's':
+        if (!goingUp) { newDirection = { x: 0, y: 1 }; }
+        break;
+    }
+  }
+
+  window.addEventListener('keydown', changeDirection);
+  setInterval(gameLoop, 200);
+</script>
+</body>
+</html>
